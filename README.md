@@ -10,14 +10,14 @@ export TOKEN=<your token here>
 - Use flag --u for providing the username of GitHub
 - Use flag --r for providing the GitHub repository name
 
-example
+example use
 ```
 rg --u=harisheoran --r=sparrowbit
 ```
 
 ### Features
 #### Implemented
-- Get a List of users who have access to your GitHub Repository.
+- Get a list of users who have access to the GitHub Repository.
 
 #### To be implemented
 - Revoke access of single or multiple users.
