@@ -1,5 +1,5 @@
 # .github/workflows/release.yml
-name: Release the Repoguard
+name: Build and Release the Repoguard CLI
 
 on:
   pull_request:
