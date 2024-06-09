@@ -6,7 +6,7 @@ Repoguard is a CLI tool built in Go to get information about who has access to y
 ```
 export TOKEN=<your token here>
 ```
-- ```rg``` command to get a list of collaborators
+- ```rg``` command to get a list of collaborators.
 - Use flag --u for providing the username of GitHub
 - Use flag --r for providing the GitHub repository name
 
