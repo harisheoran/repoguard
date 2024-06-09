@@ -1,5 +1,5 @@
 # .github/workflows/release.yml
-name: Release the Repoguard
+name: Release the Repoguard`
 
 on:
   pull_request:
