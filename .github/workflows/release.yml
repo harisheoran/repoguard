@@ -1,12 +1,10 @@
 # .github/workflows/release.yml
-name: Release the Repoguard`
+name: Release the Repoguard
 
 on:
   pull_request:
   push:
-    # run only against tags
-    tags:
-      - "*"
+    branches: master
 
 permissions:
   contents: write
