@@ -23,7 +23,6 @@ rg --u=harisheoran --r=sparrowbit
 - Revoke access of single or multiple users.
 - Generate a file of the list of users who have access to GitHub Repo.
 
-
 #### Thanks to
 - [Cobra](https://cobra.dev/)
 - [go-github](https://github.com/google/go-github)
