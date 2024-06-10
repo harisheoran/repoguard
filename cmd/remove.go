@@ -17,7 +17,7 @@ import (
 var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "remove a user from repository access",
-	Long:  ``,
+	Long:  `Revoke access of user from a repository`,
 	Run: func(cmd *cobra.Command, args []string) {
 		token := os.Getenv("GITHUB_TOKEN_RG")
 		if len(token) == 0 {
