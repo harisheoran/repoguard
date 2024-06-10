@@ -40,7 +40,7 @@ var rgCmd = &cobra.Command{
 		if len(repo) > 0 && len(username) > 0 {
 			getListofCollaboratorUser(username, repo, token)
 		} else {
-			fmt.Println("Provide username and repository name: --u <username> --r <repository>")
+			fmt.Println("Provide username and repository name: --u=<username> --r=<repository>")
 		}
 	},
 }
