@@ -14,6 +14,9 @@ var rootCmd = &cobra.Command{
 	Use:   "repoguard",
 	Short: "Repoguard is a CLI tool to manage GitHub Repository's collaborators.",
 	Long: `use Repoguard:
+	First, configure cli
+	repoguard configure
+
 	 To get list of users who have access
 	 users --u <username> --r <repo>
 
