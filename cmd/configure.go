@@ -8,8 +8,10 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"syscall"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // configureCmd represents the configure command
@@ -18,10 +20,14 @@ var configureCmd = &cobra.Command{
 	Short: "Configure repoguard for use",
 	Long:  `Configure the repoguard by providing it the GitHub Token`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var GITHUB_TOKEN string
 		fmt.Printf("GitHub Token: ")
-		fmt.Scanln(&GITHUB_TOKEN)
-		saveToken(GITHUB_TOKEN)
+		// fmt.Scanln(&GITHUB_TOKEN)
+		GITHUB_TOKEN, err := term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			log.Fatal(err)
+		}
+		//fmt.Println("Password", string(bytePassword))
+		saveToken(string(GITHUB_TOKEN))
 	},
 }
 
