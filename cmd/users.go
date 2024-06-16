@@ -8,25 +8,46 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/spf13/cobra"
 )
 
-// rgCmd represents the rg command which is core command
-var rgCmd = &cobra.Command{
-	Use:   "rg",
-	Short: "Run the Repoguard",
-	Long: `Command Available:
-	Check collaborator list:
-	1. rg --u <username of GitHub> --r <repo name>`,
+// usersCmd represents the rg command which is core command
+var usersCmd = &cobra.Command{
+	Use:   "users",
+	Short: "Get users list who have access",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		token := os.Getenv("GITHUB_TOKEN_RG")
-		if len(token) == 0 {
-			fmt.Println("Error: GITHUB_TOKEN_RG environment variable is not set.")
-			fmt.Println("Please set the GITHUB_TOKEN_RG: export GITHUB_TOKEN_RG=<your token here>")
-			os.Exit(1)
+		// Get the credentials file path
+		usr, err := user.Current()
+		if err != nil {
+			log.Fatal("Filesystemt user not found")
 		}
+		homeDir := usr.HomeDir
+		repoGuardDirPath := ".repoguard"
+		credentialsFileName := "credentials"
+		credentialsFilePath := homeDir + "/" + repoGuardDirPath + "/" + credentialsFileName
+
+		// first, check the credentials file exist
+		_, errExistFile := os.Stat(credentialsFilePath)
+		if os.IsNotExist(errExistFile) {
+			log.Fatal("Configure the repoguard: $ repoguard configure")
+		}
+
+		data, errRead := os.ReadFile(credentialsFilePath)
+		if errRead != nil {
+			log.Fatal("Repoguarrd not configured ", errRead)
+		}
+		token := string(data)
+
+		if len(token) == 0 {
+			log.Fatal("Configure the repoguard with correct credentials")
+
+		}
+
+		// get the username and repo name from flags
 		username, errUsername := cmd.Flags().GetString("u")
 		repo, errRepo := cmd.Flags().GetString("r")
 
@@ -57,7 +78,7 @@ func getListofCollaboratorUser(username, repo, token string) {
 			fmt.Println(*userList[i].Login)
 		}
 	} else {
-		fmt.Print("No Collaborator on repository", repo)
+		fmt.Print("Noone have access to ", repo)
 	}
 }
 
@@ -74,9 +95,9 @@ func getCollaboratorListFromGithub(username, repo, token string) []*github.User 
 }
 
 func init() {
-	rootCmd.AddCommand(rgCmd)
+	rootCmd.AddCommand(usersCmd)
 
 	// flags
-	rgCmd.Flags().String("u", "", "Username of GitHub")
-	rgCmd.Flags().String("r", "", "Repsitory name")
+	usersCmd.Flags().String("u", "", "Username of GitHub")
+	usersCmd.Flags().String("r", "", "Repsitory name")
 }

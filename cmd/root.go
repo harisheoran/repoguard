@@ -13,8 +13,12 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "repoguard",
 	Short: "Repoguard is a CLI tool to manage GitHub Repository's collaborators.",
-	Long: `use Repoguard: 
-	 rg --u <username> --r <repo>
+	Long: `use Repoguard:
+	 To get list of users who have access
+	 users --u <username> --r <repo>
+
+	 To revoke access of any user
+	revoke --o=<Github account username> --r=<repo name> --u=<username to remove>
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

@@ -8,24 +8,46 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/spf13/cobra"
 )
 
-// removeCmd represents the remove command
-var removeCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "remove a user from repository access",
-	Long:  `Revoke access of user from a repository`,
+// revokeCmd represents the remove command
+var revokeCmd = &cobra.Command{
+	Use:   "revoke",
+	Short: "Revoke access of user from a repository",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		token := os.Getenv("GITHUB_TOKEN_RG")
-		if len(token) == 0 {
-			fmt.Println("Error: GITHUB_TOKEN_RG environment variable is not set.")
-			fmt.Println("Please set the GITHUB_TOKEN_RG: export GITHUB_TOKEN_RG=<your token here>")
-			os.Exit(1)
+		// Get the credentials file path
+		usr, err := user.Current()
+		if err != nil {
+			log.Fatal("Filesystemt user not found")
+		}
+		homeDir := usr.HomeDir
+		repoGuardDirPath := ".repoguard"
+		credentialsFileName := "credentials"
+		credentialsFilePath := homeDir + "/" + repoGuardDirPath + "/" + credentialsFileName
+
+		// first, check the credentials file exist
+		_, errExistFile := os.Stat(credentialsFilePath)
+		if os.IsNotExist(errExistFile) {
+			log.Fatal("Configure the repoguard: $ repoguard configure")
 		}
 
+		data, errRead := os.ReadFile(credentialsFilePath)
+		if errRead != nil {
+			log.Fatal("Repoguarrd not configured ", errRead)
+		}
+		token := string(data)
+
+		if len(token) == 0 {
+			log.Fatal("Configure the repoguard with correct credentials")
+
+		}
+
+		// get the username and repo name from flags
 		username, errUsername := cmd.Flags().GetString("u")
 		repo, errRepo := cmd.Flags().GetString("r")
 		owner, errOwner := cmd.Flags().GetString("o")
@@ -67,8 +89,8 @@ func revokeUserAccess(owner, username, repo, token string) error {
 }
 
 func init() {
-	rootCmd.AddCommand(removeCmd)
-	removeCmd.Flags().String("o", "", "Owner of repo")
-	removeCmd.Flags().String("u", "", "username of GitHub account")
-	removeCmd.Flags().String("r", "", "reposiotory name")
+	rootCmd.AddCommand(revokeCmd)
+	revokeCmd.Flags().String("o", "", "Owner of repo")
+	revokeCmd.Flags().String("u", "", "username of GitHub account")
+	revokeCmd.Flags().String("r", "", "reposiotory name")
 }
