@@ -1,13 +1,15 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 repoguard harisheoran@protonmail.com
 */
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"os/user"
+	"repoguard/rg"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -20,23 +22,46 @@ var configureCmd = &cobra.Command{
 	Short: "Configure repoguard for use",
 	Long:  `Configure the repoguard by providing it the GitHub Token`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Take user input for Github token
 		fmt.Printf("GitHub Token: ")
-		// fmt.Scanln(&GITHUB_TOKEN)
 		GITHUB_TOKEN, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			log.Fatal(err)
 		}
-		//fmt.Println("Password", string(bytePassword))
-		saveToken(string(GITHUB_TOKEN))
+		// save the token
+		errSaveToken := saveToken(string(GITHUB_TOKEN))
+		if errSaveToken != nil {
+			fmt.Println(errSaveToken)
+			os.Exit(1)
+		}
+		fmt.Println()
+
+		// Take user input for GitHub account username
+		fmt.Printf("Github Username:")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+
+		errScan := scanner.Err()
+		if errScan != nil {
+			log.Fatal(errScan)
+		}
+
+		// save the username
+		errSaveUserName := saveUsername(scanner.Text())
+		if errSaveUserName != nil {
+			fmt.Println(errSaveUserName)
+			os.Exit(1)
+		}
 	},
 }
 
-func saveToken(GITHUB_TOKEN string) {
+func saveToken(GITHUB_TOKEN string) error {
 	// Get Home directory
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal("Filesystemt user not found")
+		return err
 	}
+
 	homeDir := usr.HomeDir
 	repoGuardDirPath := ".repoguard"
 	credentialsFilePath := homeDir + "/" + repoGuardDirPath
@@ -44,7 +69,7 @@ func saveToken(GITHUB_TOKEN string) {
 	// Create the directory to store credential file
 	errDirCreate := os.Mkdir(credentialsFilePath, 0700)
 	if errDirCreate != nil && !os.IsExist(errDirCreate) {
-		log.Fatal(err)
+		return err
 	}
 
 	// Create credential file inside directory
@@ -55,15 +80,39 @@ func saveToken(GITHUB_TOKEN string) {
 		_, err := os.Create(filename)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
 	// Write the credentials file with GitHub Token
 	errWrite := os.WriteFile(filename, []byte(GITHUB_TOKEN), 0700)
 	if errWrite != nil {
-		log.Fatal("Error Saving Token")
+		return errWrite
 	}
+
+	return nil
+}
+
+func saveUsername(username string) error {
+	fileName, err := rg.LoadConfigFilePath("/configs")
+	if err != nil {
+		return err
+	}
+
+	// check if file exist, if not then create file
+	if !rg.IsConfigurationExist(fileName) {
+		_, err := os.Create(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	// write the configs file
+	errWriteFile := os.WriteFile(fileName, []byte(username), 0644)
+	if errWriteFile != nil {
+		return errWriteFile
+	}
+	return nil
 }
 
 func init() {

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
+	"repoguard/rg"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/spf13/cobra"
@@ -20,77 +20,56 @@ var revokeCmd = &cobra.Command{
 	Short: "Revoke access of user from a repository",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Get the credentials file path
-		usr, err := user.Current()
+		username, err := rg.LoadUserName()
 		if err != nil {
-			log.Fatal("Filesystemt user not found")
-		}
-		homeDir := usr.HomeDir
-		repoGuardDirPath := ".repoguard"
-		credentialsFileName := "credentials"
-		credentialsFilePath := homeDir + "/" + repoGuardDirPath + "/" + credentialsFileName
-
-		// first, check the credentials file exist
-		_, errExistFile := os.Stat(credentialsFilePath)
-		if os.IsNotExist(errExistFile) {
-			log.Fatal("Configure the repoguard: $ repoguard configure")
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		data, errRead := os.ReadFile(credentialsFilePath)
-		if errRead != nil {
-			log.Fatal("Repoguarrd not configured ", errRead)
-		}
-		token := string(data)
-
-		if len(token) == 0 {
-			log.Fatal("Configure the repoguard with correct credentials")
-
+		token, err := rg.LoadToken()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		// get the username and repo name from flags
-		username, errUsername := cmd.Flags().GetString("u")
+		// get the revokeUser and repo name from flags
+		revokeUser, errrevokeUser := cmd.Flags().GetString("u")
 		repo, errRepo := cmd.Flags().GetString("r")
-		owner, errOwner := cmd.Flags().GetString("o")
 
-		if errUsername != nil {
-			log.Println("Error getting username")
+		if errrevokeUser != nil {
+			log.Println("Error getting revokeUser")
 		}
 
 		if errRepo != nil {
 			log.Println("Error getting repository")
 		}
 
-		if errOwner != nil {
-			log.Println("Error getting ownername")
-		}
-
-		if len(repo) > 0 && len(username) > 0 && len(owner) > 0 {
-			err := revokeUserAccess(owner, username, repo, token)
+		if len(repo) > 0 && len(revokeUser) > 0 {
+			err := revokeUserAccess(username, revokeUser, repo, token)
 			if err != nil {
 				log.Println("Error revoking user access")
 				os.Exit(1)
 			} else {
-				log.Println("Successfully removed user", username)
+				log.Println("Successfully removed user", revokeUser)
 			}
 
 		} else {
-			fmt.Println("Provide Owner, repository and username to reovke access: --o=<owner> --r=<repository> --u=<username>")
+			fmt.Println("Provide repository and username of user to revoke access: --r=<repository> --u=<revokeUser>")
 		}
 	},
 }
 
-func revokeUserAccess(owner, username, repo, token string) error {
+func revokeUserAccess(owner, revokeUser, repo, token string) error {
 	client := github.NewClient(nil).WithAuthToken(token)
 	ctx := context.Background()
 
-	_, err := client.Repositories.RemoveCollaborator(ctx, owner, repo, username)
+	_, err := client.Repositories.RemoveCollaborator(ctx, owner, repo, revokeUser)
 
 	return err
 }
 
 func init() {
 	rootCmd.AddCommand(revokeCmd)
-	revokeCmd.Flags().String("o", "", "Owner of repo")
-	revokeCmd.Flags().String("u", "", "username of GitHub account")
+	revokeCmd.Flags().String("u", "", "revokeUser of GitHub account")
 	revokeCmd.Flags().String("r", "", "reposiotory name")
 }

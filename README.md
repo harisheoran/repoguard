@@ -18,11 +18,9 @@ mv repoguard /usr/local/bin
 and provide it the GitHub Token
 
 - ```users``` command to get a list of collaborators.
-    - Use flag ```--u``` for providing the username of GitHub.
     - Use flag ```--r``` for providing the GitHub repository name.
 
 - ```revoke``` to revoke access of a user.
-    - Use flag ```--o``` for providing the owner of GitHub(the name of admin github account)
     - Use flag ```--r``` for providing the repository name of GitHub account of that owner.
     - Use flag ```--u``` for providing the username whom access you want to revoke.
 

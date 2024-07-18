@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
+
+	"repoguard/rg"
 
 	"github.com/google/go-github/v62/github"
 	"github.com/spf13/cobra"
@@ -20,48 +21,30 @@ var usersCmd = &cobra.Command{
 	Short: "Get users list who have access",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Get the credentials file path
-		usr, err := user.Current()
+		username, err := rg.LoadUserName()
 		if err != nil {
-			log.Fatal("Filesystemt user not found")
-		}
-		homeDir := usr.HomeDir
-		repoGuardDirPath := ".repoguard"
-		credentialsFileName := "credentials"
-		credentialsFilePath := homeDir + "/" + repoGuardDirPath + "/" + credentialsFileName
-
-		// first, check the credentials file exist
-		_, errExistFile := os.Stat(credentialsFilePath)
-		if os.IsNotExist(errExistFile) {
-			log.Fatal("Configure the repoguard: $ repoguard configure")
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		data, errRead := os.ReadFile(credentialsFilePath)
-		if errRead != nil {
-			log.Fatal("Repoguarrd not configured ", errRead)
-		}
-		token := string(data)
-
-		if len(token) == 0 {
-			log.Fatal("Configure the repoguard with correct credentials")
-
+		token, err := rg.LoadToken()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		// get the username and repo name from flags
-		username, errUsername := cmd.Flags().GetString("u")
-		repo, errRepo := cmd.Flags().GetString("r")
+		// get the repo name from flags
+		repo, err := cmd.Flags().GetString("r")
 
-		if errUsername != nil {
-			log.Println("Error getting username")
-		}
-		if errRepo != nil {
-			log.Println("Error getting repository")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
-		if len(repo) > 0 && len(username) > 0 {
+		if len(repo) > 0 {
 			getListofCollaboratorUser(username, repo, token)
 		} else {
-			fmt.Println("Provide username and repository name: --u=<username> --r=<repository>")
+			fmt.Println("Provide repository name: --r=<repository>")
 		}
 	},
 }
@@ -75,7 +58,7 @@ func getListofCollaboratorUser(username, repo, token string) {
 		fmt.Println("The following users have access to the", repo, "repository:")
 		fmt.Println()
 		for i := 0; i < len(userList); i++ {
-			fmt.Println(*userList[i].Login)
+			fmt.Println(*userList[i].Login, "   ROLE:", *userList[i].RoleName)
 		}
 	} else {
 		fmt.Print("Noone have access to ", repo)
@@ -98,6 +81,5 @@ func init() {
 	rootCmd.AddCommand(usersCmd)
 
 	// flags
-	usersCmd.Flags().String("u", "", "Username of GitHub")
 	usersCmd.Flags().String("r", "", "Repsitory name")
 }
